@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1 + 1 = 1</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0708;--fg:#f3e8e8;--muted:#a89096;--accent:#b32a43;--accent-deep:#6d0f20;--line:#2a1a1e}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:'Inter',sans-serif;font-weight:300;line-height:1.7;overflow-x:hidden}
+body.locked{overflow:hidden;height:100vh}
+h1,h2,.serif{font-family:'Cormorant Garamond',serif;font-weight:300}
+
+/* PORTE */
+#gate{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;transition:opacity 1.2s ease,visibility 1.2s}
+#gate.open{opacity:0;visibility:hidden}
+.gate-box{text-align:center;max-width:360px;width:100%}
+.gate-box .serif{font-size:2rem;margin-bottom:8px}
+.hint{color:var(--muted);font-style:italic;font-family:'Cormorant Garamond',serif;font-size:1.25rem;margin:18px 0 28px}
+#code{width:100%;background:transparent;border:0;border-bottom:1px solid var(--muted);color:var(--fg);text-align:center;font-size:1.6rem;letter-spacing:.2em;padding:10px;outline:none;font-family:'Cormorant Garamond',serif}
+#code:focus{border-color:var(--accent)}
+#go{margin-top:28px;background:none;border:1px solid var(--accent);color:var(--accent);padding:12px 34px;letter-spacing:.2em;text-transform:uppercase;font-size:.75rem;cursor:pointer;transition:.3s}
+#go:hover{background:var(--accent-deep);border-color:var(--accent-deep);color:var(--fg)}
+#err{height:20px;margin-top:14px;color:#c27a7a;font-size:.85rem;opacity:0;transition:.3s}
+.shake{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;position:relative}
+.hero h1{font-size:clamp(4rem,16vw,9rem);letter-spacing:.05em}
+.hero p{color:var(--muted);letter-spacing:.3em;text-transform:uppercase;font-size:.75rem;margin-top:12px}
+.counter{margin-top:48px;display:flex;gap:28px}
+.counter div span{display:block;font-family:'Cormorant Garamond',serif;font-size:2.4rem;color:var(--accent)}
+.counter div small{color:var(--muted);font-size:.65rem;letter-spacing:.25em;text-transform:uppercase}
+.scroll{position:absolute;bottom:28px;color:var(--muted);font-size:.65rem;letter-spacing:.3em;text-transform:uppercase;animation:float 2.4s infinite}
+@keyframes float{50%{transform:translateY(8px)}}
+
+/* TIMELINE */
+.tl{max-width:760px;margin:0 auto;padding:0 24px 80px;position:relative}
+.tl::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:linear-gradient(var(--line),var(--accent),var(--line))}
+.step{padding:90px 0;text-align:center;position:relative}
+.step::before{content:"";position:absolute;left:50%;top:0;width:9px;height:9px;margin-left:-4px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 6px var(--bg)}
+.step>*{position:relative;z-index:1}
+.date{color:var(--accent);letter-spacing:.3em;text-transform:uppercase;font-size:.72rem;background:var(--bg);display:inline-block;padding:4px 14px}
+.step h2{font-size:clamp(2rem,6vw,3rem);margin:10px 0 18px;background:var(--bg);display:inline-block;padding:0 16px}
+.step p.txt{color:var(--muted);max-width:480px;margin:0 auto 32px;background:var(--bg);padding:8px 0}
+.step .date,.step h2{display:table;margin-left:auto;margin-right:auto}
+.step .photo{background:#140d0f}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
+.final>*{position:relative;z-index:1}
+.photo{width:min(100%,380px);aspect-ratio:3/4;margin:0 auto;border:1px solid var(--accent-deep);background:#140d0f;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.75rem;letter-spacing:.15em;text-transform:uppercase}
+.photo img{width:100%;height:100%;object-fit:cover;display:block}
+.photo.wide{aspect-ratio:3/2;width:min(100%,560px)}
+.msgs{max-width:380px;margin:0 auto 36px;display:flex;flex-direction:column;gap:10px;text-align:left;background:var(--bg)}
+.msg{padding:10px 16px;border-radius:18px;font-size:.92rem;max-width:82%;line-height:1.5}
+.msg.me{align-self:flex-end;background:var(--accent-deep);color:#f3e8e8;border-bottom-right-radius:4px}
+.msg.her{align-self:flex-start;background:#1c1416;border-bottom-left-radius:4px}
+
+.msgs .msg{opacity:0;transform:translateY(10px);transition:opacity .6s ease,transform .6s ease}
+.msgs .msg.show{opacity:1;transform:none}
+.msg.typing{color:var(--muted);font-style:italic;display:none}
+.msg.typing.show{display:block}
+.dots i{font-style:normal;animation:blink 1.2s infinite}
+.dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,60%,100%{opacity:.2}30%{opacity:1}}
+
+/* FINAL */
+.final{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 24px}
+.final h2{font-size:clamp(2.4rem,8vw,4.5rem);margin-bottom:24px}
+.final{background:radial-gradient(ellipse at 50% 0%,#2a0a12 0%,var(--bg) 70%)}
+.final p{max-width:560px;color:#d9c7ca;font-size:1.05rem;margin-bottom:22px}
+.final p.sign{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.6rem;color:var(--accent);margin-top:18px}
+.final .big{font-family:'Cormorant Garamond',serif;font-size:clamp(5rem,20vw,11rem);color:var(--accent);margin-top:40px;line-height:1}
+
+/* REVEAL */
+.rv{opacity:0;transform:translateY(40px);transition:opacity 1.2s ease,transform 1.2s ease}
+.rv.in{opacity:1;transform:none}
+</style>
+</head>
+<body class="locked">
+
+<div id="gate">
+  <div class="gate-box">
+    <div class="serif">Entre le code</div>
+    <div class="hint">Ensemble, nous ne faisons qu'un.</div>
+    <input id="code" type="text" inputmode="text" autocomplete="off" placeholder="· · ·" aria-label="Code">
+    <button id="go">Ouvrir</button>
+    <div id="err">Ce n'est pas tout à fait ça…</div>
+  </div>
+</div>
+
+<section class="hero">
+  <h1>1 + 1 = 1</h1>
+  <p>Notre première année</p>
+  <div class="counter" id="counter"></div>
+  <div class="scroll">Défile ↓</div>
+</section>
+
+<main class="tl">
+
+  <!-- 28 NOVEMBRE 2025 -->
+  <section class="step rv">
+    <div class="date">28 novembre 2025</div>
+    <h2>Le début</h2>
+    <p class="txt">Le jour où tout a commencé. Où on a décidé d'écrire la suite à deux.</p>
+    <div class="msgs" id="msgs">
+      <!-- "me" = toi (à droite), "her" = elle (à gauche) -->
+      <div class="msg me">Je suis en crush sur toi</div>
+      <div class="msg her">Vraiment ?</div>
+      <div class="msg me">Oui</div>
+      <div class="msg her">Attends, laisse-moi réfléchir…</div>
+      <div class="msg her typing" id="typing">écrit<span class="dots"><i>.</i><i>.</i><i>.</i></span></div>
+      <div class="msg her" id="final">Moi aussi je t'aime</div>
+    </div>
+    <div class="photo"><img src="IMG_9170.jpeg" alt="" onerror="this.replaceWith('IMG_9170.jpeg')"></div>
+  </section>
+
+  <!-- 24 FÉVRIER 2026 -->
+  <section class="step rv">
+    <div class="date">24 février 2026</div>
+    <h2>Notre premier bisou</h2>
+    <p class="txt">Un instant tout simple, et pourtant l'un de ceux dont on se souviendra toujours.</p>
+    <div class="photo wide"><img src="IMG_9339.jpeg" alt="" onerror="this.replaceWith('IMG_9339.jpeg')"></div>
+  </section>
+
+  <!-- 8 JUILLET 2026 -->
+  <section class="step rv">
+    <div class="date">8 juillet 2026</div>
+    <h2>Un moment rien qu'à nous</h2>
+    <p class="txt">Certaines choses n'ont pas besoin d'être racontées. Elles restent entre nous deux.</p>
+    <div class="photo wide"><img src="IMG_9338.jpeg" alt="" onerror="this.replaceWith('IMG_9338.jpeg')"></div>
+  </section>
+
+  <!-- GALERIE -->
+  <section class="step rv">
+    <div class="date">Entre les deux</div>
+    <h2>Tous ces instants</h2>
+    <p class="txt">Les petits moments, les fous rires, les photos volées.</p>
+    <div class="photo"><img src="4fd97912-ee6b-4558-8696-04c4b41a36d2.jpeg" alt="" onerror="this.replaceWith('4fd97912-ee6b-4558-8696-04c4b41a36d2.jpeg')"></div>
+  </section>
+
+</main>
+
+<section class="final rv">
+  <div class="date">Notre histoire</div>
+  <h2>On se connaît depuis toujours</h2>
+  <p>Bien avant d'être « nous », on était deux enfants qui grandissaient côte à côte, sans se douter de ce que le temps avait prévu.</p>
+  <p>Tu n'as pas toujours croisé les bonnes personnes. Tu as connu des gens qui ne te méritaient pas, qui t'ont fait douter de ce que tu valais.</p>
+  <p>Alors je veux que tu saches une chose : tu mérites d'être aimée, simplement et sincèrement. Si j'ai pu te le montrer, même un peu, alors cette année est la plus belle de ma vie.</p>
+  <p>Un an déjà, et ce n'est que le début.</p>
+  <p class="sign">Ensemble, nous ne faisons qu'un.</p>
+  <div class="big">1</div>
+</section>
+
+<canvas id="fx"></canvas>
+
+<script>
+/* FEU D'ARTIFICE EN CŒUR (en bas de page) */
+const cv = document.getElementById('fx'), cx = cv.getContext('2d');
+function fit(){ const r = devicePixelRatio||1; cv.width = innerWidth*r; cv.height = innerHeight*r; cx.setTransform(r,0,0,r,0,0); }
+fit(); addEventListener('resize', fit);
+const COLORS = ['#b32a43','#e0425f','#ff7a93','#f3c1a8','#8f1d33','#ffd9de'];
+let parts = [], rockets = [], timer = null, running = false;
+
+function heartBurst(x, y, scale){
+  const color = COLORS[Math.floor(Math.random()*COLORS.length)];
+  const n = 70;
+  for(let i=0;i<n;i++){
+    const t = (i/n)*Math.PI*2;
+    const hx = 16*Math.pow(Math.sin(t),3);
+    const hy = -(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t));
+    parts.push({x,y,vx:hx*scale*0.11,vy:hy*scale*0.11,life:1,color,size:2+Math.random()*1.4});
+  }
+  for(let i=0;i<14;i++){ // petites étincelles autour
+    const a = Math.random()*Math.PI*2, s = Math.random()*2.5*scale/2;
+    parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.8,color:'#ffd9de',size:1.2});
+  }
+}
+function launch(){
+  const x = innerWidth*(0.15+Math.random()*0.7);
+  const ty = innerHeight*(0.18+Math.random()*0.3);
+  rockets.push({x,y:innerHeight,ty,vy:-9-Math.random()*2,scale:Math.min(innerWidth,700)/260*(0.8+Math.random()*0.5)});
+}
+function frame(){
+  cx.clearRect(0,0,innerWidth,innerHeight);
+  rockets = rockets.filter(r=>{
+    r.y += r.vy; r.vy *= 0.985;
+    cx.fillStyle = '#ffd9de'; cx.fillRect(r.x, r.y, 2, 10);
+    if(r.y <= r.ty || Math.abs(r.vy) < 1.5){ heartBurst(r.x, r.y, r.scale); return false; }
+    return true;
+  });
+  parts = parts.filter(p=>{
+    p.x += p.vx; p.y += p.vy; p.vx *= 0.965; p.vy = p.vy*0.965 + 0.035; p.life -= 0.012;
+    if(p.life <= 0) return false;
+    cx.globalAlpha = Math.max(0,p.life); cx.fillStyle = p.color;
+    cx.beginPath(); cx.arc(p.x,p.y,p.size,0,6.3); cx.fill();
+    return true;
+  });
+  cx.globalAlpha = 1;
+  if(running || parts.length || rockets.length) requestAnimationFrame(frame);
+}
+function startFx(){
+  if(running) return; running = true;
+  launch(); setTimeout(launch,350); setTimeout(launch,800);
+  timer = setInterval(()=>{ launch(); if(Math.random()>.4) setTimeout(launch,300); }, 1500);
+  requestAnimationFrame(frame);
+}
+function stopFx(){ running = false; clearInterval(timer); }
+addEventListener('scroll', ()=>{
+  if(document.body.classList.contains('locked')) return;
+  const bottom = scrollY + innerHeight >= document.documentElement.scrollHeight - 40;
+  bottom ? startFx() : stopFx();
+}, {passive:true});
+
+const START = new Date('2025-11-28T00:00:00');
+const gate = document.getElementById('gate');
+const input = document.getElementById('code');
+const err = document.getElementById('err');
+
+function check(){
+  const v = input.value.replace(/\s/g,'');
+  if(v === '1+1=1'){
+    gate.classList.add('open');
+    document.body.classList.remove('locked');
+  } else {
+    err.style.opacity = 1;
+    input.classList.remove('shake'); void input.offsetWidth; input.classList.add('shake');
+    setTimeout(()=>err.style.opacity=0, 2200);
+  }
+}
+document.getElementById('go').onclick = check;
+input.addEventListener('keydown', e => { if(e.key==='Enter') check(); });
+window.scrollTo(0,0);
+
+function tick(){
+  const d = Math.max(0, Date.now() - START.getTime());
+  const days = Math.floor(d/864e5), h = Math.floor(d/36e5)%24, m = Math.floor(d/6e4)%60;
+  document.getElementById('counter').innerHTML =
+    `<div><span>${days}</span><small>jours</small></div><div><span>${h}</span><small>heures</small></div><div><span>${m}</span><small>minutes</small></div>`;
+}
+tick(); setInterval(tick, 30000);
+
+/* CONVERSATION ANIMÉE */
+(function(){
+  const box = document.getElementById('msgs');
+  const all = [...box.querySelectorAll('.msg')];
+  const typing = document.getElementById('typing');
+  const fin = document.getElementById('final');
+  const first4 = all.slice(0,4);
+  const mo = new IntersectionObserver(es => {
+    if(!es[0].isIntersecting) return;
+    mo.disconnect();
+    first4.forEach((m,i)=> setTimeout(()=>m.classList.add('show'), 600 + i*1200));
+    // 2 secondes après le 4e message : "écrit…" puis la réponse
+    const tTyping = 600 + 3*1200 + 2000;
+    setTimeout(()=>{ typing.style.display='block'; requestAnimationFrame(()=>typing.classList.add('show')); }, tTyping);
+    setTimeout(()=>{ typing.style.display='none'; fin.classList.add('show'); }, tTyping + 2000);
+  }, {threshold:.6});
+  mo.observe(box);
+})();
+
+const io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} }), {threshold:.15});
+document.querySelectorAll('.rv').forEach(el => io.observe(el));
+</script>
+</body>
+</html>
